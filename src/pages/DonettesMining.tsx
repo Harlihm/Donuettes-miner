@@ -4,11 +4,11 @@ import { Gem, Zap, TrendingDown, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   useAccount,
-  useWriteContract,
   useReadContract,
-  useWaitForTransactionReceipt,
+  useSendCalls,
+  useCallsStatus,
 } from "wagmi";
-import { parseEther, formatEther, Address, maxUint256 } from "viem";
+import { formatEther, Address, encodeFunctionData } from "viem";
 import {
   DonuetteMinerABI,
   DonuetteMinerAddress,
@@ -19,16 +19,25 @@ import { useEffect } from "react";
 export function DonettesMining() {
   const { address } = useAccount();
   const {
-    writeContract,
-    data: hash,
+    sendCalls,
+    data: callsId,
     isPending,
-    error: writeError,
-  } = useWriteContract();
+    error: sendError,
+  } = useSendCalls();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { data: callsStatus } = useCallsStatus({
+    id: callsId?.id as string,
+    query: {
+      enabled: !!callsId,
+      refetchInterval: (data) =>
+        data.state.status === "success" && data.state.data?.status === "success"
+          ? false
+          : 1000,
+    },
+  });
+
+  const isConfirming = callsStatus?.status === "pending";
+  const isConfirmed = callsStatus?.status === "success";
 
   // Read Miner Data
   const { data: donutAddress } = useReadContract({
@@ -55,64 +64,54 @@ export function DonettesMining() {
     functionName: "getSlot0",
   });
 
-  // Read Allowance
-  const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: donutAddress as Address,
-    abi: DONUT_TOKEN_ABI,
-    functionName: "allowance",
-    args: address && donutAddress ? [address, DonuetteMinerAddress] : undefined,
-    query: {
-      enabled: !!address && !!donutAddress,
-    },
-  });
-
   // Refresh data periodically
   useEffect(() => {
     const interval = setInterval(() => {
       refetchPrice();
       refetchSlot0();
-      refetchAllowance();
     }, 2000);
     return () => clearInterval(interval);
-  }, [refetchPrice, refetchSlot0, refetchAllowance]);
+  }, [refetchPrice, refetchSlot0]);
 
   // Refetch on transaction confirmation
   useEffect(() => {
     if (isConfirmed) {
-      refetchAllowance();
       refetchPrice();
       refetchSlot0();
     }
-  }, [isConfirmed, refetchAllowance, refetchPrice, refetchSlot0]);
-
-  const isApproveNeeded =
-    currentPrice && allowance !== undefined && allowance < currentPrice;
+  }, [isConfirmed, refetchPrice, refetchSlot0]);
 
   const handleMine = () => {
-    if (!currentPrice || !donutAddress) return;
+    if (!currentPrice || !donutAddress || !address) return;
 
-    if (isApproveNeeded) {
-      writeContract({
-        address: donutAddress as Address,
-        abi: DONUT_TOKEN_ABI,
-        functionName: "approve",
-        args: [DonuetteMinerAddress, maxUint256],
-      });
-    } else {
-      writeContract({
-        address: DonuetteMinerAddress,
-        abi: DonuetteMinerABI,
-        functionName: "mine",
-        args: [
-          address!, // miner
-          "0x0000000000000000000000000000000000000000", // provider
-          BigInt(slot0?.epochId || 0), // epochId
-          BigInt(Math.floor(Date.now() / 1000) + 3600), // deadline
-          parseEther("1000000"), // maxPrice (slippage protection)
-          "", // uri
-        ],
-      });
-    }
+    // Batch approve + mine into a single transaction
+    sendCalls({
+      calls: [
+        {
+          to: donutAddress as Address,
+          data: encodeFunctionData({
+            abi: DONUT_TOKEN_ABI,
+            functionName: "approve",
+            args: [DonuetteMinerAddress, currentPrice],
+          }),
+        },
+        {
+          to: DonuetteMinerAddress,
+          data: encodeFunctionData({
+            abi: DonuetteMinerABI,
+            functionName: "mine",
+            args: [
+              address,
+              "0x0000000000000000000000000000000000000000", // provider
+              BigInt(slot0?.epochId || 0),
+              BigInt(Math.floor(Date.now() / 1000) + 3600), // deadline
+              currentPrice * 2n, // maxPrice (allow some slippage)
+              "",
+            ],
+          }),
+        },
+      ],
+    });
   };
 
   const formatDonut = (val: bigint | undefined) => {
@@ -152,7 +151,7 @@ export function DonettesMining() {
 
         <Button
           onClick={handleMine}
-          disabled={isPending || isConfirming || !currentPrice}
+          disabled={isPending || isConfirming || !currentPrice || !address}
           className="w-full py-4 text-lg bg-purple-400 hover:bg-purple-500 border-purple-900 shadow-[2px_2px_0px_0px_rgba(88,28,135,1)]"
         >
           {isPending || isConfirming ? (
@@ -160,16 +159,14 @@ export function DonettesMining() {
               <Loader2 className="w-4 h-4 animate-spin" />
               {isPending ? "Confirming..." : "Processing..."}
             </span>
-          ) : isApproveNeeded ? (
-            "Approve DONUT"
           ) : (
             "Mine Now"
           )}
         </Button>
 
-        {writeError && (
+        {sendError && (
           <div className="text-xs text-red-500 text-center">
-            {writeError.message.split("\n")[0]}
+            {sendError.message.split("\n")[0]}
           </div>
         )}
 
