@@ -1,1 +1,22 @@
-{}
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjIzOTM5NiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRENEU1MjIzODRkNkYxMDkwYkZENEM0NTI3YTdkNTJERmQyMGJDYTMifQ",
+    "payload": "eyJkb21haW4iOiJkb251ZXR0ZXMudmVyY2VsLmFwcCJ9",
+    "signature": "A352gkGEOOFiYj6afrjIEi4+agppHFCewyKI5c6fyiROmbUf++VWayo4h8Wy1ejJLEhHWXm54nG0swo22N5m3Bw="
+  },
+  "frame": {
+    "version": "1",
+    "name": "Donuettes Donut",
+    "iconUrl": "https://donuettes.vercel.app/icon.jpg",
+    "homeUrl": "https://donuettes.vercel.app",
+    "imageUrl": "https://donuettes.vercel.app/image.jpg",
+    "buttonTitle": "Start Mining ⛏️",
+    "splashImageUrl": "https://donuettes.vercel.app/splash.jpg",
+    "splashBackgroundColor": "#fbc8d1",
+    "webhookUrl": "https://api.neynar.com/f/app/72d399ea-5b6a-4f03-8344-2ddd7aa3a72d/event"
+  },
+
+  "baseBuilder": {
+    "ownerAddress": "0x02a9093dEB73E9E524657492429377117C70e097"
+  }
+}
