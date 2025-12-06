@@ -10,6 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<"community" | "donettes">(
     "community"
   );
+  const [hasPromptedAdd, setHasPromptedAdd] = useState(false);
   const { isConnected } = useAccount();
   const { connect, connectors } = useConnect();
 
@@ -24,6 +25,25 @@ function App() {
       }
     }
   }, [isConnected, connect, connectors]);
+
+  useEffect(() => {
+    const promptAddMiniApp = async () => {
+      if (hasPromptedAdd) return;
+
+      try {
+        const context = await sdk.context;
+        if (!context.client.added) {
+          await sdk.actions.addMiniApp();
+          setHasPromptedAdd(true);
+        }
+      } catch (error) {
+        console.log("User declined to add mini app");
+        setHasPromptedAdd(true);
+      }
+    };
+
+    promptAddMiniApp();
+  }, [hasPromptedAdd]);
 
   return (
     <div className="min-h-screen p-4 max-w-md mx-auto pb-20">
