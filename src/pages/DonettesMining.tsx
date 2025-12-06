@@ -4,26 +4,15 @@ import { Gem, Zap, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAccount, useWriteContract } from "wagmi";
 import { parseEther } from "viem";
-
+import {
+  DonuetteMinerABI,
+  DonuetteMinerAddress,
+  DonuetteTokenAddress,
+} from "./constant";
 // Placeholder ABIs
-const MINER_ABI = [
-  {
-    inputs: [
-      { name: "miner", type: "address" },
-      { name: "provider", type: "address" },
-      { name: "epochId", type: "uint256" },
-      { name: "deadline", type: "uint256" },
-      { name: "maxPrice", type: "uint256" },
-      { name: "uri", type: "string" },
-    ],
-    name: "mine",
-    outputs: [{ name: "price", type: "uint256" }],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+const MINER_ABI = DonuetteMinerABI;
 
-const MINER_ADDRESS = "0x0000000000000000000000000000000000000000";
+const MINER_ADDRESS = DonuetteMinerAddress;
 
 export function DonettesMining() {
   const { address } = useAccount();
