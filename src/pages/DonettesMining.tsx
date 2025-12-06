@@ -64,6 +64,16 @@ export function DonettesMining() {
     functionName: "getSlot0",
   });
 
+  const { data: donutBalance } = useReadContract({
+    address: donutAddress as Address,
+    abi: DONUT_TOKEN_ABI,
+    functionName: "balanceOf",
+    args: [address as Address],
+    query: {
+      enabled: !!address && !!donutAddress,
+    },
+  });
+
   const currentMiner = slot0?.miner;
   const timeElapsed = slot0?.startTime
     ? Math.floor(Date.now() / 1000 - Number(slot0.startTime))
@@ -124,8 +134,17 @@ export function DonettesMining() {
     }
   }, [isConfirmed, refetchPrice, refetchSlot0]);
 
+  const hasInsufficientBalance =
+    donutBalance !== undefined &&
+    currentPrice !== undefined &&
+    donutBalance < currentPrice;
+
   const handleMine = () => {
     if (!currentPrice || !donutAddress || !address) return;
+
+    if (hasInsufficientBalance) {
+      return; // Button should be disabled
+    }
 
     // Batch approve + mine into a single transaction
     sendCalls({
@@ -145,7 +164,7 @@ export function DonettesMining() {
             functionName: "mine",
             args: [
               address,
-              "0x0000000000000000000000000000000000000000", // provider
+              "0x52ed0d237c809714c612218c6cfea6d202690863", // provider
               BigInt(slot0?.epochId || 0),
               BigInt(Math.floor(Date.now() / 1000) + 3600), // deadline
               currentPrice * 2n, // maxPrice (allow some slippage)
@@ -181,6 +200,17 @@ export function DonettesMining() {
       </motion.div>
 
       <Card className="space-y-6 border-purple-900 shadow-[4px_4px_0px_0px_rgba(88,28,135,1)]">
+        {currentMiner?.toLowerCase() === address?.toLowerCase() && (
+          <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 text-center">
+            <p className="text-sm font-bold text-yellow-900">
+              👑 You're currently holding the throne!
+            </p>
+            <p className="text-xs text-yellow-800 mt-1">
+              You'll earn when the next person mines
+            </p>
+          </div>
+        )}
+
         <div className="text-center space-y-1">
           <div className="text-sm opacity-60">Current Mining Price</div>
           <div className="text-4xl font-black text-purple-900">
@@ -192,22 +222,56 @@ export function DonettesMining() {
           </div>
         </div>
 
+        {hasInsufficientBalance && (
+          <div className="bg-red-50 border border-red-300 rounded-lg p-4 space-y-2">
+            <p className="text-sm font-bold text-red-900">
+              ⚠️ Insufficient DONUT Balance
+            </p>
+            <p className="text-xs text-red-700">
+              You need {formatDonut(currentPrice)} DONUT to mine, but you only
+              have {formatDonut(donutBalance || 0n)} DONUT.
+            </p>
+            <p className="text-xs text-red-600">
+              Get DONUT on{" "}
+              <a
+                href="https://app.uniswap.org/swap?outputCurrency=0x89D326378b7F807D9e8CF06e921E99D6CB85Bb0a&chain=base"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline font-semibold"
+              >
+                Uniswap
+              </a>{" "}
+              or wait for the price to drop.
+            </p>
+          </div>
+        )}
+
         <Button
           onClick={handleMine}
-          disabled={isPending || isConfirming || !currentPrice || !address}
-          className="w-full py-4 text-lg bg-purple-400 hover:bg-purple-500 border-purple-900 shadow-[2px_2px_0px_0px_rgba(88,28,135,1)]"
+          disabled={
+            isPending ||
+            isConfirming ||
+            !currentPrice ||
+            !address ||
+            hasInsufficientBalance
+          }
+          className="w-full py-4 text-lg bg-purple-400 hover:bg-purple-500 border-purple-900 shadow-[2px_2px_0px_0px_rgba(88,28,135,1)] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending || isConfirming ? (
             <span className="flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               {isPending ? "Confirming..." : "Processing..."}
             </span>
+          ) : hasInsufficientBalance ? (
+            "Insufficient DONUT"
+          ) : currentMiner?.toLowerCase() === address?.toLowerCase() ? (
+            "You're the King Glazer! 👑"
           ) : (
-            "Mine Now"
+            "Claim the Crown! 👑"
           )}
         </Button>
 
-        {sendError && (
+        {sendError && !hasInsufficientBalance && (
           <div className="text-xs text-red-500 text-center">
             {sendError.message.split("\n")[0]}
           </div>
@@ -229,7 +293,7 @@ export function DonettesMining() {
         <div className="space-y-2">
           <h4 className="font-bold text-purple-900">Current Epoch</h4>
           <div className="flex items-center justify-between">
-            <span className="opacity-60">Current Miner:</span>
+            <span className="opacity-60">Current King glazer:</span>
             <span className="font-semibold">
               {minerUsername ? (
                 <span className="text-purple-700">@{minerUsername}</span>
