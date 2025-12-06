@@ -220,7 +220,7 @@ export function DonettesMining() {
           </div>
           <div className="bg-purple-100 p-3 rounded-lg border border-purple-200">
             <div className="opacity-60 text-xs">Emission Rate</div>
-            <div className="font-bold">{formatDonut(dps)} DNTE/sec</div>
+            <div className="font-bold">{formatDonut(dps)} Donnuetts/sec</div>
           </div>
         </div>
       </Card>
