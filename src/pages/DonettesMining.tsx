@@ -14,7 +14,7 @@ import {
   DonuetteMinerAddress,
   DONUT_TOKEN_ABI,
 } from "./constant";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function DonettesMining() {
   const { address } = useAccount();
@@ -63,6 +63,49 @@ export function DonettesMining() {
     abi: DonuetteMinerABI,
     functionName: "getSlot0",
   });
+
+  const currentMiner = slot0?.miner;
+  const timeElapsed = slot0?.startTime
+    ? Math.floor(Date.now() / 1000 - Number(slot0.startTime))
+    : 0;
+
+  const [minerUsername, setMinerUsername] = useState<string | null>(null);
+
+  // Fetch Farcaster username for current miner
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (!currentMiner) {
+        setMinerUsername(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${currentMiner}`,
+          {
+            headers: {
+              api_key: import.meta.env.VITE_NEYNAR_API_KEY,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const user = data[currentMiner.toLowerCase()]?.[0];
+          if (user?.username) {
+            setMinerUsername(user.username);
+          } else {
+            setMinerUsername(null);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch username:", error);
+        setMinerUsername(null);
+      }
+    };
+
+    fetchUsername();
+  }, [currentMiner]);
 
   // Refresh data periodically
   useEffect(() => {
@@ -182,15 +225,47 @@ export function DonettesMining() {
         </div>
       </Card>
 
-      <div className="bg-white/50 p-4 rounded-xl text-xs space-y-2 border border-foreground/10">
-        <h4 className="font-bold flex items-center gap-2 text-purple-900">
-          <Zap className="w-3 h-3" />
-          Donette Mechanics
-        </h4>
-        <p>• Price drops over time (Dutch Auction).</p>
-        <p>• Mining doubles the price for the next miner.</p>
-        <p>• 80% of DONUT spent goes to the previous miner.</p>
-        <p>• 10% to Treasury, 10% to Provider.</p>
+      <div className="bg-white/50 p-4 rounded-xl text-xs space-y-3 border border-foreground/10">
+        <div className="space-y-2">
+          <h4 className="font-bold text-purple-900">Current Epoch</h4>
+          <div className="flex items-center justify-between">
+            <span className="opacity-60">Current Miner:</span>
+            <span className="font-semibold">
+              {minerUsername ? (
+                <span className="text-purple-700">@{minerUsername}</span>
+              ) : currentMiner ? (
+                <span className="font-mono text-xs">
+                  {currentMiner.slice(0, 6)}...{currentMiner.slice(-4)}
+                </span>
+              ) : (
+                "—"
+              )}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="opacity-60">Time Held:</span>
+            <span className="font-semibold">
+              {timeElapsed > 0
+                ? `${Math.floor(timeElapsed / 60)}m ${timeElapsed % 60}s`
+                : "—"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="opacity-60">Epoch ID:</span>
+            <span className="font-semibold">#{slot0?.epochId || 0}</span>
+          </div>
+        </div>
+
+        <div className="border-t border-foreground/10 pt-3 space-y-2">
+          <h4 className="font-bold flex items-center gap-2 text-purple-900">
+            <Zap className="w-3 h-3" />
+            How It Works
+          </h4>
+          <p>• Price drops over time (Dutch Auction).</p>
+          <p>• Mining doubles the price for the next miner.</p>
+          <p>• 80% of DONUT spent goes to the previous miner.</p>
+          <p>• 10% to Treasury, 10% to Provider.</p>
+        </div>
       </div>
     </div>
   );
