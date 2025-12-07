@@ -93,7 +93,7 @@ function App() {
                 Donuettes
               </motion.h1>
             </motion.div>
-            <p className="text-amber-800">Co-mining Pool Platform</p>
+            <p className="text-amber-800">Co-mining Pool</p>
             <div className="flex items-center justify-center gap-2 text-sm text-amber-600">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Pool Active
