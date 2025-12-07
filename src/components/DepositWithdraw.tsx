@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,7 +23,7 @@ interface DepositWithdrawProps {
 }
 
 export function DepositWithdraw({
-  connectedWallet,
+  connectedWallet: _connectedWallet,
   amount,
   setAmount,
   onDeposit,
