@@ -11,13 +11,6 @@ interface PastPoolsProps {
   onToggle: () => void;
 }
 
-interface PoolReward {
-  poolId: bigint;
-  donutReward: bigint;
-  donuetteReward: bigint;
-  canClaim: boolean;
-}
-
 // Component to fetch rewards for a single pool
 function PoolRewardItem({ 
   poolId, 
@@ -205,7 +198,7 @@ export function PastPools({ formatDonut, isExpanded, onToggle }: PastPoolsProps)
               </div>
             ) : (
               <div className="space-y-3 mt-4">
-                {pastPools.map((poolId, index) => (
+                {pastPools.map((poolId) => (
                   <PoolRewardItem
                     key={poolId.toString()}
                     poolId={poolId}
