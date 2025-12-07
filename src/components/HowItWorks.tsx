@@ -9,7 +9,7 @@ export function HowItWorks() {
     { text: 'Deposit DONUT into the active pool.', icon: '💰' },
     { text: 'The target price drops over time (Dutch Auction).', icon: '⏰' },
     { text: 'When Pool Funds ≥ Target Price, the pool automatically mines.', icon: '⚡' },
-    { text: 'If the pool wins, you get Donuettes. If outbid, you get DONUT profit.', icon: '🏆' },
+    { text: 'When the pool gets outbid, you get Donuettes (mined while it was King) + DONUT profit.', icon: '🏆' },
   ];
 
   return (

@@ -8,6 +8,7 @@ import { Button } from "./components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 
 function App() {
+  const [isMaintenanceMode] = useState(true); // Set to false to disable maintenance mode
   const [activeTab, setActiveTab] = useState<
     "donettes" | "donettes-comining"
   >("donettes-comining");
@@ -45,6 +46,69 @@ function App() {
 
     promptAddMiniApp();
   }, [hasPromptedAdd]);
+
+  // Maintenance mode - blocks all access
+  if (isMaintenanceMode) {
+    return (
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-pink-100 via-amber-50 to-orange-100 relative overflow-hidden flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-amber-300/20 rounded-full blur-3xl" />
+        </div>
+
+        <motion.div
+          className="relative z-10 text-center px-6 max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div
+            className="mb-8"
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="text-8xl">🔧</div>
+          </motion.div>
+          
+          <motion.h1
+            className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-amber-600 to-orange-600 mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            Please Wait
+          </motion.h1>
+          
+          <motion.p
+            className="text-xl text-amber-800 font-semibold mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            Fixing the Pool
+          </motion.p>
+          
+          <motion.div
+            className="flex items-center justify-center gap-2 text-amber-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-sm">We'll be back soon</span>
+            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

@@ -5,9 +5,10 @@ interface YourPositionProps {
   userDeposit: bigint;
   poolShare: number;
   formatDonut: (val: bigint) => string;
+  onViewPastPools?: () => void;
 }
 
-export function YourPosition({ userDeposit, poolShare, formatDonut }: YourPositionProps) {
+export function YourPosition({ userDeposit, poolShare, formatDonut, onViewPastPools }: YourPositionProps) {
   return (
     <motion.div
       className="space-y-4"
@@ -26,15 +27,17 @@ export function YourPosition({ userDeposit, poolShare, formatDonut }: YourPositi
           </motion.div>
           <h4 className="text-amber-900">Your Position</h4>
         </div>
-        <motion.button
-          className="group flex items-center gap-2 px-4 py-2 text-sm text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-all border border-amber-200 hover:border-amber-300 hover:shadow-md"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          disabled
-        >
-          <Eye className="w-4 h-4" />
-          View Past Rewards
-        </motion.button>
+        {onViewPastPools && (
+          <motion.button
+            onClick={onViewPastPools}
+            className="group flex items-center gap-2 px-4 py-2 text-sm text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-all border border-amber-200 hover:border-amber-300 hover:shadow-md"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Eye className="w-4 h-4" />
+            View Past Rewards
+          </motion.button>
+        )}
       </div>
 
       <div className="relative">

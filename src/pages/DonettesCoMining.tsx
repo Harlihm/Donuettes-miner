@@ -5,6 +5,7 @@ import { PoolStats } from "../components/PoolStats";
 import { DepositWithdraw } from "../components/DepositWithdraw";
 import { YourPosition } from "../components/YourPosition";
 import { HowItWorks } from "../components/HowItWorks";
+import { PastPools } from "../components/PastPools";
 import {
   useAccount,
   useReadContract,
@@ -310,6 +311,9 @@ export function DonettesCoMining() {
     ? Number((userDeposited * 10000n) / totalDeposited) / 100
     : 0;
 
+  // Past pools state
+  const [showPastPools, setShowPastPools] = useState(false);
+
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
       {/* Pool Header */}
@@ -385,8 +389,18 @@ export function DonettesCoMining() {
           userDeposit={userDeposited}
           poolShare={poolShare}
           formatDonut={formatDonut}
+          onViewPastPools={() => setShowPastPools(!showPastPools)}
         />
       </div>
+
+      {/* Past Pools */}
+      {address && (
+        <PastPools
+          formatDonut={formatDonut}
+          isExpanded={showPastPools}
+          onToggle={() => setShowPastPools(!showPastPools)}
+        />
+      )}
 
       {/* How It Works */}
       <HowItWorks />
