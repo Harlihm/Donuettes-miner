@@ -259,7 +259,7 @@ export function DonettesCoMining() {
           </div>
           <p className="text-xs opacity-60">
             Min deposit:{" "}
-            {minDepositAmount > 0n ? formatDonut(minDepositAmount) : "100"}{" "}
+            {minDepositAmount > 0n ? formatDonut(minDepositAmount) : "5"}{" "}
             DONUT
           </p>
           {hasInsufficientBalance && amount && (
