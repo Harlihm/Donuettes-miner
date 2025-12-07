@@ -1,24 +1,25 @@
 import { Button } from "./ui/Button";
 
 interface NavigationProps {
-  activeTab: "community" | "donettes";
-  onTabChange: (tab: "community" | "donettes") => void;
+  activeTab: "donettes" | "donettes-comining";
+  onTabChange: (tab: "donettes" | "donettes-comining") => void;
 }
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   return (
-    <div className="flex gap-4 justify-center mb-8">
+    <div className="flex gap-2 justify-center mb-8 flex-wrap">
       <Button
-        variant={activeTab === "community" ? "primary" : "secondary"}
-        onClick={() => onTabChange("community")}
-        className="w-full"
+        variant={activeTab === "donettes-comining" ? "primary" : "secondary"}
+        onClick={() => onTabChange("donettes-comining")}
+        className="flex-1 min-w-[100px]"
       >
-        ⛏️ Donut Co-mining
+        ⛏️ Donuettes Co-mining
       </Button>
       <Button
         variant={activeTab === "donettes" ? "primary" : "secondary"}
         onClick={() => onTabChange("donettes")}
-        className="w-full"
+        className="flex-1 min-w-[100px]"
+        style={{ display: "none" }}
       >
         ⛏️ Donettes Mining
       </Button>

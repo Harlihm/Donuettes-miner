@@ -1,5 +1,8 @@
 export const COMINING_ADDRESS = "0xFD18Bd74c7a1247935e40cbCf6AcB1c5b275E217";
 
+// Donuettes Co-mining Contract (placeholder - update with actual address)
+export const DONUETTES_COMINING_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 export const COMINING_ABI = [
   {
     type: "constructor",
@@ -482,6 +485,240 @@ export const COMINING_ABI = [
       },
     ],
     anonymous: false,
+  },
+] as const;
+
+// Donuettes Co-mining ABI (similar to COMINING_ABI but for DONUT token deposits)
+export const DONUETTES_COMINING_ABI = [
+  {
+    type: "constructor",
+    inputs: [
+      { name: "_miner", type: "address", internalType: "address" },
+      { name: "_donuette", type: "address", internalType: "address" },
+      { name: "_donut", type: "address", internalType: "address" },
+      { name: "_provider", type: "address", internalType: "address" },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "DIVISOR",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "autoMineEnabled",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "claimMultiplePools",
+    inputs: [{ name: "poolIds", type: "uint256[]", internalType: "uint256[]" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claimRewards",
+    inputs: [{ name: "poolId", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "currentPoolId",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "deposit",
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "donuette",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract IDonut" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "donut",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract IERC20" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getClaimableRewards",
+    inputs: [
+      { name: "poolId", type: "uint256", internalType: "uint256" },
+      { name: "user", type: "address", internalType: "address" },
+    ],
+    outputs: [
+      { name: "donutReward", type: "uint256", internalType: "uint256" },
+      { name: "donuetteReward", type: "uint256", internalType: "uint256" },
+      { name: "canClaim", type: "bool", internalType: "bool" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentGlazePrice",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentPoolPosition",
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "poolId", type: "uint256", internalType: "uint256" },
+      { name: "deposited", type: "uint256", internalType: "uint256" },
+      { name: "shares", type: "uint256", internalType: "uint256" },
+      {
+        name: "sharePercentage",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum Comining.PoolStatus",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getPoolDetails",
+    inputs: [{ name: "poolId", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "totalDeposited",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      { name: "totalShares", type: "uint256", internalType: "uint256" },
+      { name: "donutSpent", type: "uint256", internalType: "uint256" },
+      { name: "donutReceived", type: "uint256", internalType: "uint256" },
+      { name: "donuetteMined", type: "uint256", internalType: "uint256" },
+      {
+        name: "depositorCount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum Comining.PoolStatus",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getUserPools",
+    inputs: [{ name: "user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "maxPriceSlippage",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "minDeposit",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "minPoolSize",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "mine",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "miner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract IMiner" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "pools",
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      { name: "poolId", type: "uint256", internalType: "uint256" },
+      {
+        name: "totalDeposited",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      { name: "totalShares", type: "uint256", internalType: "uint256" },
+      { name: "donutSpent", type: "uint256", internalType: "uint256" },
+      { name: "donutReceived", type: "uint256", internalType: "uint256" },
+      { name: "donuetteMined", type: "uint256", internalType: "uint256" },
+      { name: "startTime", type: "uint256", internalType: "uint256" },
+      { name: "mineTime", type: "uint256", internalType: "uint256" },
+      {
+        name: "status",
+        type: "uint8",
+        internalType: "enum Comining.PoolStatus",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "provider",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "totalPoolsCreated",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "withdrawFromCurrentPool",
+    inputs: [{ name: "shares", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
 ] as const;
 

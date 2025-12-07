@@ -2,14 +2,14 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { Navigation } from "./components/Navigation";
-import { CommunityMining } from "./pages/CommunityMining";
 import { DonettesMining } from "./pages/DonettesMining";
+import { DonettesCoMining } from "./pages/DonettesCoMining";
 import { Button } from "./components/ui/Button";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<"community" | "donettes">(
-    "community"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "donettes" | "donettes-comining"
+  >("donettes-comining");
   const [hasPromptedAdd, setHasPromptedAdd] = useState(false);
   const { isConnected } = useAccount();
   const { connect, connectors } = useConnect();
@@ -57,7 +57,11 @@ function App() {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main>
-        {activeTab === "community" ? <CommunityMining /> : <DonettesMining />}
+        {activeTab === "donettes-comining" ? (
+          <DonettesCoMining />
+        ) : (
+          <DonettesMining />
+        )}
       </main>
     </div>
   );
