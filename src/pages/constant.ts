@@ -3,7 +3,7 @@ export const COMINING_ADDRESS = "0xFD18Bd74c7a1247935e40cbCf6AcB1c5b275E217";
 // Donuettes Co-mining Contract
 export const DONUETTES_COMINING_ADDRESS = "0x86353D8abEBb23C6ed041E029223A339C85AE11E";
 
-export const COMINING_ABI = [
+export const COMINING_ABI = [ 
   {
     type: "constructor",
     inputs: [
