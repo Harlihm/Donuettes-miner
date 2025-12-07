@@ -1,8 +1,8 @@
 {
   "accountAssociation": {
-    "header": "eyJmaWQiOjIzOTM5NiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRENEU1MjIzODRkNkYxMDkwYkZENEM0NTI3YTdkNTJERmQyMGJDYTMifQ",
-    "payload": "eyJkb21haW4iOiJkb251ZXR0ZXMudmVyY2VsLmFwcCJ9",
-    "signature": "A352gkGEOOFiYj6afrjIEi4+agppHFCewyKI5c6fyiROmbUf++VWayo4h8Wy1ejJLEhHWXm54nG0swo22N5m3Bw="
+    "header": "eyJmaWQiOjI1NjUwMCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDhhNkNhMGY0OThFZTQ1YjVCY2MyRTYwRUFBNjhmOTJmOTNCZURmQUYifQ",
+    "payload": "eyJkb21haW4iOiJkb251ZXR0ZXMtY28tbWluZXIudmVyY2VsLmFwcCJ9",
+    "signature": "keE9eiUbdvytBjiMy9K0Q6UF7TpdIF0GuBr94373GSIBiFUhKyo0s65njxNbpdDsaM/ZNKVLIgBhUXVm4XBrARw="
   },
   "frame": {
     "version": "1",
@@ -12,7 +12,7 @@
     "imageUrl": "https://donuettes-co-miner.vercel.app/image.jpg",
     "buttonTitle": "Start Mining ⛏️",
     "splashImageUrl": "https://donuettes-co-miner.vercel.app/splash.jpg",
-    "splashBackgroundColor": "#fbc8d1",
+    "splashBackgroundColor": "#fed7aa",
     "webhookUrl": "https://api.neynar.com/f/app/72d399ea-5b6a-4f03-8344-2ddd7aa3a72d/event"
   },
 
