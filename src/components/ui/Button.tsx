@@ -1,12 +1,13 @@
 import React from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { motion, type HTMLMotionProps } from "framer-motion";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "variant"> {
   variant?: "primary" | "secondary" | "outline";
 }
 
@@ -14,6 +15,7 @@ export function Button({
   children,
   className,
   variant = "primary",
+  disabled,
   ...props
 }: ButtonProps) {
   const variants = {
@@ -23,15 +25,20 @@ export function Button({
   };
 
   return (
-    <button
+    <motion.button
       className={cn(
-        "px-4 py-2 rounded-lg font-bold transition-all active:translate-y-[2px] active:shadow-none border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+        "px-4 py-2 rounded-lg font-bold border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
         variants[variant],
+        disabled && "opacity-50 cursor-not-allowed",
         className
       )}
+      whileHover={!disabled ? { scale: 1.02, boxShadow: "4px_4px_0px_0px_rgba(0,0,0,1)" } : {}}
+      whileTap={!disabled ? { scale: 0.98, boxShadow: "1px_1px_0px_0px_rgba(0,0,0,1)" } : {}}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      disabled={disabled}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }

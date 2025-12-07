@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Card } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { Pickaxe, Timer, TrendingDown, Gem } from "lucide-react";
+import { Gem } from "lucide-react";
 import { motion } from "framer-motion";
+import { PoolStats } from "../components/PoolStats";
+import { DepositWithdraw } from "../components/DepositWithdraw";
+import { YourPosition } from "../components/YourPosition";
+import { HowItWorks } from "../components/HowItWorks";
 import {
   useAccount,
   useReadContract,
@@ -303,183 +305,91 @@ export function DonettesCoMining() {
     }
   }, [isConfirmed]);
 
+  // Calculate pool share percentage
+  const poolShare = totalDeposited > 0n && userDeposited > 0n
+    ? Number((userDeposited * 10000n) / totalDeposited) / 100
+    : 0;
+
   return (
-    <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-2"
-      >
-        <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
-          <Gem className="w-6 h-6" />
-          <span className="text-2xl"> </span>
-          Donuettes Co-miners Pool #{currentPoolId?.toString() || "-"}
-        </h2>
-        <p className="text-sm opacity-80">
-          Pool DONUT together to win the Donuette King auction.
-        </p>
-      </motion.div>
-
-      <Card className="space-y-4">
-        <div className="flex justify-between items-center">
-          <span className="font-bold">Status</span>
-          <span
-            className={`px-2 py-1 rounded text-xs font-bold border ${
-              isReadyToMine
-                ? "bg-green-400/20 text-green-700 border-green-700"
-                : "bg-yellow-400/20 text-yellow-700 border-yellow-700"
-            }`}
+    <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
+      {/* Pool Header */}
+      <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 p-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white border border-white/30">
+              Pool #{currentPoolId?.toString() || "-"}
+            </div>
+          </div>
+          <motion.h3
+            className="text-white mb-2 text-2xl"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            {isReadyToMine ? "READY TO MINE" : "ACCUMULATING"}
-          </span>
+            <motion.span
+              className="inline-block mr-2"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
+              <Gem className="w-6 h-6 inline" />
+            </motion.span>
+            Donuettes Co-miners Pool
+          </motion.h3>
+          <motion.p
+            className="text-white/90 text-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.9 }}
+            transition={{ delay: 0.2 }}
+          >
+            🏆 Pool DONUT together to win the Donuette King auction
+          </motion.p>
         </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs">
-            <span>Progress to Mine</span>
-            <span className="font-bold">{progress.toFixed(2)}%</span>
-          </div>
-          <div className="h-4 bg-black/5 rounded-full overflow-hidden border border-black/10 relative">
-            <motion.div
-              className="h-full bg-gradient-to-r from-pink-400 to-purple-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min(progress, 100)}%` }}
-              transition={{ duration: 0.5 }}
-            />
-            {/* Target Line */}
-            <div className="absolute top-0 bottom-0 w-0.5 bg-red-500/50 right-0 z-10" />
-          </div>
-          <div className="flex justify-between text-xs opacity-60">
-            <span>{formatDonut(totalDeposited)} DONUT raised</span>
-            <span className="flex items-center gap-1">
-              Target: {formatDonut(price)} DONUT
-              <TrendingDown className="w-3 h-3" />
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-background/50 p-3 rounded-lg border border-foreground/10">
-            <div className="text-xs opacity-60">Total Deposited</div>
-            <div className="font-bold text-lg">
-              {formatDonut(totalDeposited)} DONUT
-            </div>
-          </div>
-          <div className="bg-background/50 p-3 rounded-lg border border-foreground/10">
-            <div className="text-xs opacity-60">Participants</div>
-            <div className="font-bold text-lg">{participants.toString()}</div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-bold">Deposit DONUT</label>
-          <div className="flex flex-wrap gap-2">
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={minDepositAmount > 0n ? formatDonut(minDepositAmount) : "5"}
-              className="flex-1 min-w-0 bg-white p-2 rounded-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-pink-400"
-            />
-            <div className="flex gap-2 flex-shrink-0">
-              <Button
-                onClick={handleDeposit}
-                disabled={isDepositDisabled}
-                className="whitespace-nowrap"
-              >
-                {approveTxHash || isApproving
-                  ? "Approving..."
-                  : isDepositPending || isConfirming || isDepositWritePending
-                    ? "Depositing..."
-                    : isConfirmed
-                      ? "Deposited!"
-                      : "Deposit"}
-              </Button>
-              {userDeposited > 0n && (
-                <Button
-                  onClick={handleWithdraw}
-                  disabled={isWithdrawPending}
-                  variant="outline"
-                  className="border-red-500 text-red-500 hover:bg-red-50 whitespace-nowrap"
-                >
-                  {isWithdrawPending ? "Withdrawing..." : "Withdraw"}
-                </Button>
-              )}
-            </div>
-          </div>
-          <p className="text-xs opacity-60">
-            Min deposit:{" "}
-            {minDepositAmount > 0n ? formatDonut(minDepositAmount) : "5"}{" "}
-            DONUT
-          </p>
-          {hasInsufficientBalance && amount && (
-            <p className="text-xs text-red-500">
-              Insufficient DONUT balance. You have: {formatDonut(donutBalance)}{" "}
-              DONUT
-            </p>
-          )}
-          {(sendError || writeError) && (
-            <p className="text-xs text-red-500">
-              Error: {(sendError || writeError)?.message || "Transaction failed"}
-            </p>
-          )}
-          {approveTxHash && (
-            <p className="text-xs text-yellow-600">
-              Waiting for approval confirmation...
-            </p>
-          )}
-          {isConfirmed && (
-            <p className="text-xs text-green-500">
-              Deposit successful! Refreshing...
-            </p>
-          )}
-        </div>
-      </Card>
-
-      <Card className="bg-[#feface]/50">
-        <h3 className="font-bold mb-4 flex items-center gap-2">
-          <Pickaxe className="w-4 h-4" />
-          Your Position
-        </h3>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span>Your Deposit</span>
-            <span className="font-bold">
-              {userPosition ? formatDonut(userPosition[1]) : "0.00"} DONUT
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Pool Share</span>
-            <span className="font-bold">
-              {userPosition
-                ? (Number(userPosition[3]) / 100).toFixed(2)
-                : "0.00"}
-              %
-            </span>
-          </div>
-
-          {/* Note: Claimable amounts would need to be fetched from getClaimableRewards for past pools */}
-
-          <Button variant="outline" className="w-full mt-2" disabled>
-            View Past Rewards
-          </Button>
-        </div>
-      </Card>
-
-      <div className="bg-white/50 p-4 rounded-xl text-xs space-y-2 border border-foreground/10">
-        <h4 className="font-bold flex items-center gap-2">
-          <Timer className="w-3 h-3" />
-          How it works
-        </h4>
-        <p>1. Deposit DONUT into the active pool.</p>
-        <p>2. The target price drops over time (Dutch Auction).</p>
-        <p>3. When Pool Funds ≥ Target Price, the pool automatically mines.</p>
-        <p>
-          4. If the pool wins, you get Donuettes. If outbid, you get DONUT
-          profit.
-        </p>
       </div>
+
+      <div className="p-8">
+        {/* Pool Stats */}
+        <PoolStats 
+          progress={progress}
+          totalDeposited={totalDeposited}
+          targetAmount={price}
+          participants={participants}
+          isReadyToMine={isReadyToMine}
+          formatDonut={formatDonut}
+        />
+
+        {/* Deposit/Withdraw */}
+        <DepositWithdraw
+          connectedWallet={address || null}
+          amount={amount}
+          setAmount={setAmount}
+          onDeposit={handleDeposit}
+          onWithdraw={handleWithdraw}
+          minDeposit={minDepositAmount}
+          formatDonut={formatDonut}
+          isDepositDisabled={isDepositDisabled}
+          isWithdrawPending={isWithdrawPending}
+          isDepositPending={isDepositPending || isConfirming || isDepositWritePending}
+          isApproving={isApproving}
+          approveTxHash={approveTxHash}
+          isConfirmed={isConfirmed}
+          hasInsufficientBalance={hasInsufficientBalance}
+          donutBalance={donutBalance}
+          userDeposited={userDeposited}
+          sendError={sendError}
+          writeError={writeError}
+        />
+
+        {/* Your Position */}
+        <YourPosition
+          userDeposit={userDeposited}
+          poolShare={poolShare}
+          formatDonut={formatDonut}
+        />
+      </div>
+
+      {/* How It Works */}
+      <HowItWorks />
     </div>
   );
 }
