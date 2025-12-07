@@ -379,7 +379,7 @@ export function DonettesCoMining() {
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="100"
+              placeholder={minDepositAmount > 0n ? formatDonut(minDepositAmount) : "5"}
               className="flex-1 min-w-0 bg-white p-2 rounded-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
             <div className="flex gap-2 flex-shrink-0">
