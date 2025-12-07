@@ -7,11 +7,11 @@
   "frame": {
     "version": "1",
     "name": "Donuettes Donut",
-    "iconUrl": "https://donuettes.vercel.app/icon.jpg",
-    "homeUrl": "https://donuettes.vercel.app",
-    "imageUrl": "https://donuettes.vercel.app/image.jpg",
+    "iconUrl": "https://donuettes-co-miner.vercel.app/icon.jpg",
+    "homeUrl": "https://donuettes-co-miner.vercel.app",
+    "imageUrl": "https://donuettes-co-miner.vercel.app/image.jpg",
     "buttonTitle": "Start Mining ⛏️",
-    "splashImageUrl": "https://donuettes.vercel.app/splash.jpg",
+    "splashImageUrl": "https://donuettes-co-miner.vercel.app/splash.jpg",
     "splashBackgroundColor": "#fbc8d1",
     "webhookUrl": "https://api.neynar.com/f/app/72d399ea-5b6a-4f03-8344-2ddd7aa3a72d/event"
   },
