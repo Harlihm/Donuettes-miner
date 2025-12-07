@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Pickaxe, Timer, TrendingDown, Gem } from "lucide-react";
@@ -8,6 +8,7 @@ import {
   useReadContract,
   useWriteContract,
   useSendCalls,
+  useCallsStatus,
 } from "wagmi";
 import { parseEther, formatEther, Address, encodeFunctionData } from "viem";
 import {
@@ -24,8 +25,27 @@ const POOL_ADDRESS = DONUETTES_COMINING_ADDRESS;
 export function DonettesCoMining() {
   const [amount, setAmount] = useState("");
   const { address } = useAccount();
-  const { writeContract, isPending } = useWriteContract();
-  const { sendCalls } = useSendCalls();
+  const { writeContract, isPending: isWithdrawPending } = useWriteContract();
+  const {
+    sendCalls,
+    data: callsId,
+    isPending: isDepositPending,
+    error: sendError,
+  } = useSendCalls();
+
+  const { data: callsStatus } = useCallsStatus({
+    id: callsId?.id as string,
+    query: {
+      enabled: !!callsId,
+      refetchInterval: (data) =>
+        data.state.status === "success" && data.state.data?.status === "success"
+          ? false
+          : 1000,
+    },
+  });
+
+  const isConfirming = callsStatus?.status === "pending";
+  const isConfirmed = callsStatus?.status === "success";
 
   // 1. Get Current Pool ID
   const { data: currentPoolId } = useReadContract({
@@ -113,33 +133,48 @@ export function DonettesCoMining() {
   const amountWei = amount ? parseEther(amount) : 0n;
   const hasInsufficientBalance =
     !donutBalance || donutBalance < amountWei || amountWei === 0n;
+  const isDepositDisabled =
+    isDepositPending || isConfirming || hasInsufficientBalance || !amount;
 
   const handleDeposit = () => {
-    if (!amount || !donutAddress || !address) return;
+    if (!amount || !donutAddress || !address) {
+      console.error("Missing required data:", { amount, donutAddress, address });
+      return;
+    }
 
-    const depositAmount = parseEther(amount);
+    try {
+      const depositAmount = parseEther(amount);
+      console.log("Initiating deposit:", {
+        amount,
+        depositAmount: depositAmount.toString(),
+        donutAddress,
+        poolAddress: POOL_ADDRESS,
+      });
 
-    // Batch approve + deposit into a single transaction
-    sendCalls({
-      calls: [
-        {
-          to: donutAddress as Address,
-          data: encodeFunctionData({
-            abi: DONUT_TOKEN_ABI,
-            functionName: "approve",
-            args: [POOL_ADDRESS, depositAmount],
-          }),
-        },
-        {
-          to: POOL_ADDRESS,
-          data: encodeFunctionData({
-            abi: POOL_ABI,
-            functionName: "deposit",
-            args: [depositAmount],
-          }),
-        },
-      ],
-    });
+      // Batch approve + deposit into a single transaction
+      sendCalls({
+        calls: [
+          {
+            to: donutAddress as Address,
+            data: encodeFunctionData({
+              abi: DONUT_TOKEN_ABI,
+              functionName: "approve",
+              args: [POOL_ADDRESS, depositAmount],
+            }),
+          },
+          {
+            to: POOL_ADDRESS,
+            data: encodeFunctionData({
+              abi: POOL_ABI,
+              functionName: "deposit",
+              args: [depositAmount],
+            }),
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error in handleDeposit:", error);
+    }
   };
 
   const handleWithdraw = () => {
@@ -160,6 +195,14 @@ export function DonettesCoMining() {
     if (!val) return "0.00";
     return parseFloat(formatEther(val)).toFixed(2);
   };
+
+  // Reset amount and refetch data after successful deposit
+  useEffect(() => {
+    if (isConfirmed) {
+      setAmount("");
+      // Data will auto-refetch due to refetchInterval in useReadContract hooks
+    }
+  }, [isConfirmed]);
 
   return (
     <div className="space-y-6">
@@ -242,18 +285,22 @@ export function DonettesCoMining() {
             />
             <Button
               onClick={handleDeposit}
-              disabled={isPending || hasInsufficientBalance}
+              disabled={isDepositDisabled}
             >
-              {isPending ? "Depositing..." : "Deposit"}
+              {isDepositPending || isConfirming
+                ? "Depositing..."
+                : isConfirmed
+                  ? "Deposited!"
+                  : "Deposit"}
             </Button>
             {userDeposited > 0n && (
               <Button
                 onClick={handleWithdraw}
-                disabled={isPending}
+                disabled={isWithdrawPending}
                 variant="outline"
                 className="border-red-500 text-red-500 hover:bg-red-50"
               >
-                Withdraw
+                {isWithdrawPending ? "Withdrawing..." : "Withdraw"}
               </Button>
             )}
           </div>
@@ -266,6 +313,16 @@ export function DonettesCoMining() {
             <p className="text-xs text-red-500">
               Insufficient DONUT balance. You have: {formatDonut(donutBalance)}{" "}
               DONUT
+            </p>
+          )}
+          {sendError && (
+            <p className="text-xs text-red-500">
+              Error: {sendError.message || "Transaction failed"}
+            </p>
+          )}
+          {isConfirmed && (
+            <p className="text-xs text-green-500">
+              Deposit successful! Refreshing...
             </p>
           )}
         </div>
