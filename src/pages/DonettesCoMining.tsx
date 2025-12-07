@@ -11,6 +11,7 @@ import {
   useCallsStatus,
 } from "wagmi";
 import { parseEther, formatEther, Address, encodeFunctionData } from "viem";
+import { usePublicClient, useWaitForTransactionReceipt } from "wagmi";
 import {
   DONUETTES_COMINING_ABI,
   DONUETTES_COMINING_ADDRESS,
@@ -24,8 +25,27 @@ const POOL_ADDRESS = DONUETTES_COMINING_ADDRESS;
 
 export function DonettesCoMining() {
   const [amount, setAmount] = useState("");
-  const { address } = useAccount();
-  const { writeContract, isPending: isWithdrawPending } = useWriteContract();
+  const [approveTxHash, setApproveTxHash] = useState<string | null>(null);
+  const { address, connector } = useAccount();
+  
+  // Check if wallet supports sendCalls (EIP-5792) - primarily Farcaster
+  const isFarcasterWallet = connector?.id === "farcaster" || connector?.id === "farcasterMiniApp";
+  
+  const { writeContract, writeContractAsync, isPending: isWritePending, error: writeError, data: writeTxHash } = useWriteContract();
+  const isWithdrawPending = isWritePending;
+  const isDepositWritePending = isWritePending && !approveTxHash;
+  
+  // Track approval transaction hash from writeContract
+  useEffect(() => {
+    if (writeTxHash && approveTxHash === null && !isFarcasterWallet) {
+      // Check if this is an approve transaction by checking if we're waiting for approval
+      const isApproveTx = writeTxHash && amount;
+      if (isApproveTx) {
+        setApproveTxHash(writeTxHash);
+      }
+    }
+  }, [writeTxHash, approveTxHash, isFarcasterWallet, amount]);
+  
   const {
     sendCalls,
     data: callsId,
@@ -116,6 +136,42 @@ export function DonettesCoMining() {
     },
   });
 
+  // 8. Get Current Allowance
+  const { data: currentAllowance } = useReadContract({
+    address: donutAddress as Address,
+    abi: DONUT_TOKEN_ABI,
+    functionName: "allowance",
+    args: [address as Address, POOL_ADDRESS],
+    query: {
+      enabled: !!address && !!donutAddress,
+    },
+  });
+
+  const publicClient = usePublicClient();
+  
+  // Wait for approval transaction
+  const { isLoading: isApproving, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({
+    hash: approveTxHash as `0x${string}` | undefined,
+    query: {
+      enabled: !!approveTxHash,
+    },
+  });
+
+  // Auto-deposit after approval succeeds
+  useEffect(() => {
+    if (isApproveSuccess && approveTxHash && amount && !isFarcasterWallet) {
+      const depositAmount = parseEther(amount);
+      console.log("Approval confirmed, proceeding with deposit");
+      setApproveTxHash(null);
+      writeContract({
+        address: POOL_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "deposit",
+        args: [depositAmount],
+      });
+    }
+  }, [isApproveSuccess, approveTxHash, amount, isFarcasterWallet, writeContract]);
+
   // Derived State
   const totalDeposited = poolDetails ? (poolDetails as any)[0] : 0n;
   const totalShares = poolDetails ? (poolDetails as any)[1] : 0n;
@@ -134,11 +190,11 @@ export function DonettesCoMining() {
   const hasInsufficientBalance =
     !donutBalance || donutBalance < amountWei || amountWei === 0n;
   const isDepositDisabled =
-    isDepositPending || isConfirming || hasInsufficientBalance || !amount;
+    isDepositPending || isConfirming || isDepositWritePending || isApproving || hasInsufficientBalance || !amount || !!approveTxHash;
 
-  const handleDeposit = () => {
-    if (!amount || !donutAddress || !address) {
-      console.error("Missing required data:", { amount, donutAddress, address });
+  const handleDeposit = async () => {
+    if (!amount || !donutAddress || !address || !publicClient) {
+      console.error("Missing required data:", { amount, donutAddress, address, publicClient });
       return;
     }
 
@@ -149,31 +205,74 @@ export function DonettesCoMining() {
         depositAmount: depositAmount.toString(),
         donutAddress,
         poolAddress: POOL_ADDRESS,
+        isFarcasterWallet,
+        currentAllowance: currentAllowance?.toString(),
       });
 
-      // Batch approve + deposit into a single transaction
-      sendCalls({
-        calls: [
-          {
-            to: donutAddress as Address,
-            data: encodeFunctionData({
+      // For Farcaster wallets, use sendCalls (batch transactions)
+      if (isFarcasterWallet) {
+        sendCalls({
+          calls: [
+            {
+              to: donutAddress as Address,
+              data: encodeFunctionData({
+                abi: DONUT_TOKEN_ABI,
+                functionName: "approve",
+                args: [POOL_ADDRESS, depositAmount],
+              }),
+            },
+            {
+              to: POOL_ADDRESS,
+              data: encodeFunctionData({
+                abi: POOL_ABI,
+                functionName: "deposit",
+                args: [depositAmount],
+              }),
+            },
+          ],
+        });
+      } else {
+        // For regular wallets, check allowance and approve if needed, then deposit
+        const needsApproval = !currentAllowance || currentAllowance < depositAmount;
+        
+        if (needsApproval) {
+          console.log("Approving token spend...");
+          if (writeContractAsync) {
+            try {
+              const approveHash = await writeContractAsync({
+              address: donutAddress as Address,
               abi: DONUT_TOKEN_ABI,
               functionName: "approve",
               args: [POOL_ADDRESS, depositAmount],
-            }),
-          },
-          {
-            to: POOL_ADDRESS,
-            data: encodeFunctionData({
-              abi: POOL_ABI,
-              functionName: "deposit",
-              args: [depositAmount],
-            }),
-          },
-        ],
-      });
+            });
+            setApproveTxHash(approveHash);
+            console.log("Waiting for approval transaction:", approveHash);
+            // Deposit will be triggered automatically by useEffect when approval succeeds
+            } catch (error) {
+              console.error("Approve error:", error);
+            }
+          } else {
+            // Fallback: use writeContract with mutation
+            writeContract({
+              address: donutAddress as Address,
+              abi: DONUT_TOKEN_ABI,
+              functionName: "approve",
+              args: [POOL_ADDRESS, depositAmount],
+            });
+          }
+        } else {
+          // Already approved, deposit directly
+          writeContract({
+            address: POOL_ADDRESS,
+            abi: POOL_ABI,
+            functionName: "deposit",
+            args: [depositAmount],
+          });
+        }
+      }
     } catch (error) {
       console.error("Error in handleDeposit:", error);
+      setApproveTxHash(null);
     }
   };
 
@@ -287,11 +386,13 @@ export function DonettesCoMining() {
               onClick={handleDeposit}
               disabled={isDepositDisabled}
             >
-              {isDepositPending || isConfirming
-                ? "Depositing..."
-                : isConfirmed
-                  ? "Deposited!"
-                  : "Deposit"}
+              {approveTxHash || isApproving
+                ? "Approving..."
+                : isDepositPending || isConfirming || isDepositWritePending
+                  ? "Depositing..."
+                  : isConfirmed
+                    ? "Deposited!"
+                    : "Deposit"}
             </Button>
             {userDeposited > 0n && (
               <Button
@@ -315,9 +416,14 @@ export function DonettesCoMining() {
               DONUT
             </p>
           )}
-          {sendError && (
+          {(sendError || writeError) && (
             <p className="text-xs text-red-500">
-              Error: {sendError.message || "Transaction failed"}
+              Error: {(sendError || writeError)?.message || "Transaction failed"}
+            </p>
+          )}
+          {approveTxHash && (
+            <p className="text-xs text-yellow-600">
+              Waiting for approval confirmation...
             </p>
           )}
           {isConfirmed && (
