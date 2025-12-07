@@ -374,36 +374,39 @@ export function DonettesCoMining() {
 
         <div className="space-y-2">
           <label className="text-sm font-bold">Deposit DONUT</label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="100"
-              className="flex-1 bg-white p-2 rounded-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className="flex-1 min-w-0 bg-white p-2 rounded-lg border-2 border-foreground focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
-            <Button
-              onClick={handleDeposit}
-              disabled={isDepositDisabled}
-            >
-              {approveTxHash || isApproving
-                ? "Approving..."
-                : isDepositPending || isConfirming || isDepositWritePending
-                  ? "Depositing..."
-                  : isConfirmed
-                    ? "Deposited!"
-                    : "Deposit"}
-            </Button>
-            {userDeposited > 0n && (
+            <div className="flex gap-2 flex-shrink-0">
               <Button
-                onClick={handleWithdraw}
-                disabled={isWithdrawPending}
-                variant="outline"
-                className="border-red-500 text-red-500 hover:bg-red-50"
+                onClick={handleDeposit}
+                disabled={isDepositDisabled}
+                className="whitespace-nowrap"
               >
-                {isWithdrawPending ? "Withdrawing..." : "Withdraw"}
+                {approveTxHash || isApproving
+                  ? "Approving..."
+                  : isDepositPending || isConfirming || isDepositWritePending
+                    ? "Depositing..."
+                    : isConfirmed
+                      ? "Deposited!"
+                      : "Deposit"}
               </Button>
-            )}
+              {userDeposited > 0n && (
+                <Button
+                  onClick={handleWithdraw}
+                  disabled={isWithdrawPending}
+                  variant="outline"
+                  className="border-red-500 text-red-500 hover:bg-red-50 whitespace-nowrap"
+                >
+                  {isWithdrawPending ? "Withdrawing..." : "Withdraw"}
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-xs opacity-60">
             Min deposit:{" "}
